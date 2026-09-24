@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Timbiriche Online Masivo - Proyecto1-9640f</title>
+    <title>Timbiriche Online Masivo - Juego Multijugador</title>
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <script>
@@ -13,12 +13,12 @@
                 extend: {
                     colors: {
                         cyber: {
-                            dark: '#0b0f19',
-                            card: '#1e293b',
-                            border: '#334155',
-                            cyan: '#06b6d4',
-                            pink: '#ec4899',
-                            gold: '#f59e0b',
+                            dark: '#0a0e17',
+                            card: '#161e2e',
+                            border: '#2a364f',
+                            cyan: '#00f0ff',
+                            pink: '#ff007f',
+                            gold: '#ffb700',
                             emerald: '#10b981'
                         }
                     },
@@ -28,8 +28,8 @@
                     },
                     keyframes: {
                         pulseGlow: {
-                            '0%, 100%': { boxShadow: '0 0 15px rgba(6, 182, 212, 0.4)' },
-                            '50%': { boxShadow: '0 0 30px rgba(236, 72, 153, 0.7)' }
+                            '0%, 100%': { boxShadow: '0 0 15px rgba(0, 240, 255, 0.4)' },
+                            '50%': { boxShadow: '0 0 30px rgba(255, 0, 127, 0.7)' }
                         },
                         floatUp: {
                             '0%': { opacity: '1', transform: 'translateY(0) scale(1)' },
@@ -41,7 +41,7 @@
         }
     </script>
     <!-- Google Fonts -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800;900&display=swap" rel="stylesheet">
     <!-- Canvas Confetti CDN -->
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
     <!-- FontAwesome Icons -->
@@ -49,18 +49,17 @@
 
     <style>
         body {
-            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            font-family: 'Outfit', -apple-system, BlinkMacSystemFont, sans-serif;
             touch-action: manipulation;
             user-select: none;
             -webkit-user-select: none;
             overflow: hidden;
-            background-color: #0b0f19;
+            background-color: #0a0e17;
             color: #f8fafc;
         }
 
-        /* Glassmorphism Styles */
         .glass-panel {
-            background: rgba(30, 41, 59, 0.85);
+            background: rgba(22, 30, 46, 0.88);
             backdrop-filter: blur(16px);
             -webkit-backdrop-filter: blur(16px);
             border: 1px solid rgba(255, 255, 255, 0.12);
@@ -73,20 +72,7 @@
             transition: all 0.2s ease;
         }
         .glass-button:active {
-            transform: scale(0.95);
-        }
-
-        /* Custom Scrollbars */
-        ::-webkit-scrollbar {
-            width: 6px;
-            height: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: #334155;
-            border-radius: 4px;
+            transform: scale(0.96);
         }
 
         canvas {
@@ -96,7 +82,7 @@
 </head>
 <body class="h-full flex flex-col antialiased selection:bg-cyan-500 selection:text-white">
 
-    <!-- TOP NAVIGATION BAR -->
+    <!-- BARRA DE NAVEGACIÓN SUPERIOR -->
     <header class="h-14 bg-slate-900/90 border-b border-slate-800 px-4 flex items-center justify-between z-20 shrink-0">
         <div class="flex items-center space-x-3">
             <div class="w-9 h-9 rounded-xl bg-gradient-to-tr from-cyan-500 to-pink-500 flex items-center justify-center font-black text-xl shadow-lg shadow-cyan-500/20">
@@ -104,142 +90,203 @@
             </div>
             <div>
                 <h1 class="font-extrabold text-base sm:text-lg tracking-wide text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 to-pink-400 leading-tight">
-                    TIMBIRICHE <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30">PRO</span>
+                    TIMBIRICHE <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-300 font-semibold border border-cyan-500/30">ONLINE</span>
                 </h1>
-                <p class="text-[10px] text-slate-400 hidden sm:block">Firebase: proyecto1-9640f | Hasta 20 Jugadores</p>
+                <p class="text-[10px] text-slate-400 hidden sm:block">Partidas Masivas de hasta 20 Jugadores</p>
             </div>
         </div>
 
         <div class="flex items-center space-x-2">
-            <!-- Room Code Badge (when inside room) -->
+            <!-- Indicador de Estado Firebase -->
+            <div id="connectionBadge" class="hidden sm:flex items-center px-2.5 py-1 rounded-full bg-slate-800 border border-slate-700 text-[11px] font-semibold text-slate-300">
+                <span id="connectionDot" class="w-2 h-2 rounded-full bg-amber-400 mr-1.5 animate-pulse"></span>
+                <span id="connectionText">Conectando...</span>
+            </div>
+
+            <!-- Código de Sala (En Juego) -->
             <div id="roomCodeBadge" class="hidden flex items-center bg-slate-800/90 border border-slate-700 px-3 py-1 rounded-lg text-xs font-mono shadow-md">
                 <span class="text-slate-400 mr-1.5">SALA:</span>
                 <span id="displayRoomCode" class="font-bold text-cyan-400 tracking-wider">------</span>
-                <button onclick="copyRoomCode()" class="ml-2 text-slate-400 hover:text-white transition-colors" title="Copiar Enlace de Invitación">
+                <button onclick="copyRoomLink()" class="ml-2 text-slate-400 hover:text-white transition-colors" title="Copiar Enlace">
                     <i class="fa-regular fa-copy"></i>
                 </button>
             </div>
 
-            <!-- Rules Modal Button -->
             <button onclick="toggleModal('rulesModal')" class="glass-button px-3 py-1.5 rounded-lg text-xs font-semibold text-slate-200 hover:bg-slate-800 flex items-center space-x-1.5">
                 <i class="fa-solid fa-book-open text-cyan-400"></i>
                 <span class="hidden sm:inline">Reglas</span>
             </button>
 
-            <!-- Audio Toggle Button -->
             <button id="soundToggleBtn" onclick="toggleSound()" class="glass-button w-8 h-8 rounded-lg flex items-center justify-center text-xs text-slate-300 hover:bg-slate-800">
                 <i id="soundIcon" class="fa-solid fa-volume-high text-cyan-400"></i>
             </button>
         </div>
     </header>
 
-    <!-- MAIN CONTENT CONTAINER -->
+    <!-- CONTENEDOR PRINCIPAL -->
     <main class="flex-1 relative overflow-hidden flex flex-col md:flex-row">
 
-        <!-- LOBBY / SETUP SCREEN -->
-        <div id="lobbyScreen" class="absolute inset-0 z-30 bg-slate-950/95 flex items-center justify-center p-4 overflow-y-auto">
+        <!-- 1. PANTALLA DE REGISTRO INICIAL -->
+        <div id="registerScreen" class="absolute inset-0 z-40 bg-slate-950 flex items-center justify-center p-4 overflow-y-auto">
             <div class="max-w-md w-full glass-panel rounded-2xl p-6 shadow-2xl border border-slate-800 my-auto">
-                
-                <!-- Logo Header -->
                 <div class="text-center mb-6">
                     <div class="inline-flex p-3 rounded-2xl bg-gradient-to-br from-cyan-500/20 to-pink-500/20 border border-cyan-500/30 mb-2">
-                        <i class="fa-solid fa-border-all text-4xl text-transparent bg-clip-text bg-gradient-to-tr from-cyan-400 to-pink-500"></i>
+                        <i class="fa-solid fa-user-gear text-3xl text-cyan-400"></i>
                     </div>
-                    <h2 class="text-2xl font-black text-white tracking-wide">TIMBIRICHE MASIVO</h2>
-                    <p class="text-xs text-slate-400 mt-1">Conexión directa en tiempo real | 2 a 20 Jugadores</p>
+                    <h2 class="text-2xl font-black text-white tracking-wide">REGISTRO DE JUGADOR</h2>
+                    <p class="text-xs text-slate-400 mt-1">Crea tu perfil de competidor para entrar a la sala</p>
                 </div>
 
-                <!-- Player Profile Setup -->
-                <div class="space-y-4 mb-6">
+                <form onsubmit="handleRegistration(event)" class="space-y-4">
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Nombre / Apodo</label>
-                        <input type="text" id="playerNameInput" maxlength="15" placeholder="Ej. ProGamer" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Tu Apodo / Nombre</label>
+                        <input type="text" id="regNameInput" required maxlength="15" placeholder="Ej. AlexPro99" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-sm text-white placeholder-slate-500 focus:outline-none focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500 transition-all">
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Avatar de Jugador</label>
-                        <div id="avatarPicker" class="grid grid-cols-6 gap-2 p-2 bg-slate-900/80 rounded-xl border border-slate-800 max-h-28 overflow-y-auto">
-                            <!-- Injected dynamically via JS -->
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Tabs: Create vs Join -->
-                <div class="flex border-b border-slate-800 mb-5">
-                    <button id="tabCreateBtn" onclick="switchLobbyTab('create')" class="flex-1 py-2 text-xs font-bold uppercase border-b-2 border-cyan-500 text-cyan-400 transition-all">
-                        Crear Sala
-                    </button>
-                    <button id="tabJoinBtn" onclick="switchLobbyTab('join')" class="flex-1 py-2 text-xs font-bold uppercase border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all">
-                        Unirse a Sala
-                    </button>
-                </div>
-
-                <!-- Create Room Panel -->
-                <div id="createRoomPanel" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Tamaño del Tablero</label>
-                        <div class="grid grid-cols-2 gap-2">
-                            <button type="button" onclick="selectGridSize(6)" class="grid-opt-btn p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-left transition-all hover:border-cyan-500 active flex flex-col" data-size="6">
-                                <span class="font-extrabold text-xs text-white">6 x 6 Puntos</span>
-                                <span class="text-[10px] text-slate-400">Rápido (25 cajas)</span>
-                            </button>
-                            <button type="button" onclick="selectGridSize(10)" class="grid-opt-btn p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-left transition-all hover:border-cyan-500 flex flex-col" data-size="10">
-                                <span class="font-extrabold text-xs text-white">10 x 10 Puntos</span>
-                                <span class="text-[10px] text-slate-400">Estándar (81 cajas)</span>
-                            </button>
-                            <button type="button" onclick="selectGridSize(15)" class="grid-opt-btn p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-left transition-all hover:border-cyan-500 flex flex-col" data-size="15">
-                                <span class="font-extrabold text-xs text-white">15 x 15 Puntos</span>
-                                <span class="text-[10px] text-cyan-400 font-semibold">Grande (196 cajas)</span>
-                            </button>
-                            <button type="button" onclick="selectGridSize(20)" class="grid-opt-btn p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-left transition-all hover:border-cyan-500 flex flex-col" data-size="20">
-                                <span class="font-extrabold text-xs text-white">20 x 20 Puntos</span>
-                                <span class="text-[10px] text-pink-400 font-semibold">GIGANTE (361 cajas)</span>
-                            </button>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Elige tu Avatar Emoji</label>
+                        <div id="regAvatarPicker" class="grid grid-cols-6 gap-2 p-2 bg-slate-900/80 rounded-xl border border-slate-800 max-h-28 overflow-y-auto">
+                            <!-- Emojis inyectados dinámicamente -->
                         </div>
                     </div>
 
                     <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Reloj por Turno</label>
-                        <select id="timerSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-xs text-white focus:outline-none focus:border-cyan-500">
-                            <option value="15" selected>15 Segundos (Dinámico)</option>
-                            <option value="30">30 Segundos (Estratégico)</option>
-                            <option value="45">45 Segundos (Relajado)</option>
-                            <option value="0">Sin Tiempo Límite</option>
-                        </select>
+                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Color de Ficha / Marca</label>
+                        <div id="regColorPicker" class="flex flex-wrap gap-2 p-2 bg-slate-900/80 rounded-xl border border-slate-800">
+                            <!-- Colores inyectados dinámicamente -->
+                        </div>
                     </div>
 
-                    <button onclick="createNewRoom()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-plus"></i>
-                        <span>CREAR SALA Y JUGAR</span>
+                    <button type="submit" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-sm rounded-xl shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center space-x-2 mt-2">
+                        <span>REGISTRARSE Y ENTRAR</span>
+                        <i class="fa-solid fa-arrow-right"></i>
                     </button>
-                </div>
-
-                <!-- Join Room Panel -->
-                <div id="joinRoomPanel" class="space-y-4 hidden">
-                    <div>
-                        <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Código de la Sala</label>
-                        <input type="text" id="joinCodeInput" maxlength="6" placeholder="Ej. X8K29A" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-center font-mono text-lg font-bold uppercase text-cyan-400 placeholder-slate-600 focus:outline-none focus:border-cyan-500 tracking-widest">
-                    </div>
-
-                    <button onclick="joinExistingRoom()" class="w-full py-3 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-extrabold text-sm rounded-xl shadow-lg shadow-pink-500/25 transition-all flex items-center justify-center space-x-2">
-                        <i class="fa-solid fa-right-to-bracket"></i>
-                        <span>UNIRSE A PARTIDA</span>
-                    </button>
-                </div>
-
-                <!-- Toast Notifications -->
-                <div id="lobbyToast" class="mt-4 text-center text-xs text-red-400 font-semibold hidden"></div>
-
+                </form>
             </div>
         </div>
 
-        <!-- ACTIVE GAME VIEWPORT -->
+        <!-- 2. VISTA LANDING PAGE / LOBBY PRINCIPAL -->
+        <div id="landingLobbyScreen" class="absolute inset-0 z-30 bg-slate-950/95 flex flex-col overflow-y-auto hidden">
+            <!-- Banner Introductorio / Visualización -->
+            <div class="bg-gradient-to-b from-slate-900 via-slate-900/80 to-slate-950 p-6 sm:p-10 border-b border-slate-800 text-center relative overflow-hidden">
+                <div class="absolute inset-0 opacity-10 bg-[radial-gradient(#00f0ff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+                
+                <div class="max-w-3xl mx-auto relative z-10">
+                    <div class="inline-flex items-center space-x-2 px-3 py-1 rounded-full bg-cyan-500/10 border border-cyan-500/30 text-cyan-400 text-xs font-semibold mb-3">
+                        <i class="fa-solid fa-globe"></i>
+                        <span>Plataforma Multijugador Online en Tiempo Real</span>
+                    </div>
+                    <h2 class="text-3xl sm:text-5xl font-black text-white tracking-tight mb-3">
+                        EL TIMBIRICHE <span class="text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-pink-500 to-amber-400">GIGANTE</span>
+                    </h2>
+                    <p class="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed mb-6">
+                        Compite contra hasta 20 jugadores en vivo. Conecta puntos, encierra cajas de $1\times 1$, gana turnos extra y domina el tablero espacial.
+                    </p>
+
+                    <!-- Tarjetas de Características -->
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-left max-w-2xl mx-auto mb-2">
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
+                            <i class="fa-solid fa-users text-cyan-400 text-lg mb-1"></i>
+                            <div class="font-extrabold text-xs text-white">Hasta 20 Jugadores</div>
+                            <div class="text-[10px] text-slate-400">Salas masivas sin lag</div>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
+                            <i class="fa-solid fa-border-all text-pink-400 text-lg mb-1"></i>
+                            <div class="font-extrabold text-xs text-white">Hasta 20x20 Puntos</div>
+                            <div class="text-[10px] text-slate-400">361 cajas por disputar</div>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
+                            <i class="fa-solid fa-mobile-screen text-amber-400 text-lg mb-1"></i>
+                            <div class="font-extrabold text-xs text-white">iPhone & Android</div>
+                            <div class="text-[10px] text-slate-400">Gestos de Zoom y Pan</div>
+                        </div>
+                        <div class="bg-slate-900/80 border border-slate-800 p-3 rounded-xl">
+                            <i class="fa-solid fa-bolt text-emerald-400 text-lg mb-1"></i>
+                            <div class="font-extrabold text-xs text-white">Reloj Dinámico</div>
+                            <div class="text-[10px] text-slate-400">Movimientos automáticos</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Panel de Crear / Unirse -->
+            <div class="flex-1 max-w-xl w-full mx-auto p-4 sm:p-6 flex flex-col justify-center">
+                <div class="glass-panel rounded-2xl p-6 border border-slate-800 shadow-2xl">
+                    
+                    <!-- Tabs -->
+                    <div class="flex border-b border-slate-800 mb-5">
+                        <button id="tabCreateBtn" onclick="switchLobbyTab('create')" class="flex-1 py-2 text-xs font-bold uppercase border-b-2 border-cyan-500 text-cyan-400 transition-all">
+                            Crear Nueva Sala
+                        </button>
+                        <button id="tabJoinBtn" onclick="switchLobbyTab('join')" class="flex-1 py-2 text-xs font-bold uppercase border-b-2 border-transparent text-slate-400 hover:text-slate-200 transition-all">
+                            Unirse a Código
+                        </button>
+                    </div>
+
+                    <!-- Pestaña Crear -->
+                    <div id="createRoomPanel" class="space-y-4">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Tamaño de Tablero</label>
+                            <div class="grid grid-cols-2 gap-2">
+                                <button type="button" onclick="selectGridSize(6)" class="grid-opt-btn p-2.5 rounded-xl border border-cyan-500 bg-slate-900 text-left transition-all hover:border-cyan-500 flex flex-col" data-size="6">
+                                    <span class="font-extrabold text-xs text-white">6 x 6 Puntos</span>
+                                    <span class="text-[10px] text-slate-400">Rápido (25 cajas)</span>
+                                </button>
+                                <button type="button" onclick="selectGridSize(10)" class="grid-opt-btn p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-left transition-all hover:border-cyan-500 flex flex-col" data-size="10">
+                                    <span class="font-extrabold text-xs text-white">10 x 10 Puntos</span>
+                                    <span class="text-[10px] text-slate-400">Estándar (81 cajas)</span>
+                                </button>
+                                <button type="button" onclick="selectGridSize(15)" class="grid-opt-btn p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-left transition-all hover:border-cyan-500 flex flex-col" data-size="15">
+                                    <span class="font-extrabold text-xs text-white">15 x 15 Puntos</span>
+                                    <span class="text-[10px] text-cyan-400 font-semibold">Grande (196 cajas)</span>
+                                </button>
+                                <button type="button" onclick="selectGridSize(20)" class="grid-opt-btn p-2.5 rounded-xl border border-slate-700 bg-slate-900 text-left transition-all hover:border-cyan-500 flex flex-col" data-size="20">
+                                    <span class="font-extrabold text-xs text-white">20 x 20 Puntos</span>
+                                    <span class="text-[10px] text-pink-400 font-semibold">GIGANTE (361 cajas)</span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Tiempo por Turno</label>
+                            <select id="timerSelect" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2.5 text-xs text-white focus:outline-none focus:border-cyan-500">
+                                <option value="15" selected>15 Segundos (Rápido)</option>
+                                <option value="30">30 Segundos (Estratégico)</option>
+                                <option value="45">45 Segundos (Tranquilo)</option>
+                                <option value="0">Sin Límite de Tiempo</option>
+                            </select>
+                        </div>
+
+                        <button id="btnCreateRoomAction" onclick="createNewRoom()" class="w-full py-3.5 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-black text-sm rounded-xl shadow-lg shadow-cyan-500/25 transition-all flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-plus"></i>
+                            <span id="btnCreateText">CREAR SALA MULTIJUGADOR</span>
+                        </button>
+                    </div>
+
+                    <!-- Pestaña Unirse -->
+                    <div id="joinRoomPanel" class="space-y-4 hidden">
+                        <div>
+                            <label class="block text-xs font-bold uppercase tracking-wider text-slate-300 mb-1.5">Código de la Sala</label>
+                            <input type="text" id="joinCodeInput" maxlength="6" placeholder="Ej. X8K29A" class="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-3 text-center font-mono text-xl font-extrabold uppercase text-cyan-400 placeholder-slate-600 focus:outline-none focus:border-cyan-500 tracking-widest">
+                        </div>
+
+                        <button id="btnJoinRoomAction" onclick="joinExistingRoom()" class="w-full py-3.5 bg-gradient-to-r from-pink-500 to-purple-600 hover:from-pink-400 hover:to-purple-500 text-white font-black text-sm rounded-xl shadow-lg shadow-pink-500/25 transition-all flex items-center justify-center space-x-2">
+                            <i class="fa-solid fa-right-to-bracket"></i>
+                            <span>UNIRSE A SALA</span>
+                        </button>
+                    </div>
+
+                    <div id="lobbyNotice" class="mt-4 text-center text-xs text-amber-400 font-semibold hidden"></div>
+
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. ÁREA DE JUEGO ACTIVO (CANVAS) -->
         <div id="gameView" class="w-full h-full flex flex-col flex-1 relative overflow-hidden">
             
-            <!-- Turn HUD Bar -->
+            <!-- HUD Superior del Turno -->
             <div class="bg-slate-900/90 border-b border-slate-800 p-2.5 sm:px-4 flex items-center justify-between z-10 shrink-0">
-                
-                <!-- Turn Player Status -->
                 <div class="flex items-center space-x-3">
                     <div id="turnAvatar" class="w-10 h-10 rounded-xl flex items-center justify-center text-xl bg-slate-800 ring-2 ring-slate-700 transition-all shadow-md">
                         👤
@@ -247,12 +294,11 @@
                     <div>
                         <div class="text-[10px] uppercase font-bold text-slate-400 tracking-wider">Turno Actual</div>
                         <div id="turnPlayerName" class="text-sm font-extrabold text-white truncate max-w-[130px] sm:max-w-[220px]">
-                            Esperando jugadores...
+                            Cargando...
                         </div>
                     </div>
                 </div>
 
-                <!-- Countdown Progress -->
                 <div id="timerContainer" class="flex flex-col items-end w-28 sm:w-44">
                     <div class="flex items-center space-x-1.5 mb-1">
                         <i class="fa-regular fa-clock text-xs text-amber-400"></i>
@@ -263,35 +309,32 @@
                     </div>
                 </div>
 
-                <!-- Host Controls Start Button -->
                 <div id="hostControls" class="hidden">
-                    <button id="startGameBtn" onclick="hostStartGame()" class="px-3 py-1.5 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-black rounded-lg shadow-md hover:brightness-110 flex items-center space-x-1.5">
+                    <button id="startGameBtn" onclick="hostStartGame()" class="px-3.5 py-2 bg-gradient-to-r from-emerald-500 to-teal-600 text-white text-xs font-black rounded-lg shadow-md hover:brightness-110 flex items-center space-x-1.5">
                         <i class="fa-solid fa-play"></i>
-                        <span>EMPEZAR</span>
+                        <span>INICIAR</span>
                     </button>
                 </div>
-
             </div>
 
-            <!-- CANVAS BOARD CONTAINER -->
+            <!-- Canvas Interactivo -->
             <div id="canvasContainer" class="flex-1 relative w-full h-full overflow-hidden bg-slate-950 cursor-grab active:cursor-grabbing">
-                
                 <canvas id="gameCanvas" class="absolute inset-0 w-full h-full"></canvas>
 
-                <!-- Touch & Zoom Controls (Floating Left) -->
+                <!-- Zoom Controls -->
                 <div class="absolute bottom-4 left-4 z-10 flex flex-col space-y-2">
-                    <button onclick="zoomCanvas(1.25)" class="glass-button w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm shadow-lg" title="Acercar Zoom">
+                    <button onclick="zoomCanvas(1.25)" class="glass-button w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm shadow-lg">
                         <i class="fa-solid fa-plus"></i>
                     </button>
-                    <button onclick="zoomCanvas(0.8)" class="glass-button w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm shadow-lg" title="Alejar Zoom">
+                    <button onclick="zoomCanvas(0.8)" class="glass-button w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm shadow-lg">
                         <i class="fa-solid fa-minus"></i>
                     </button>
-                    <button onclick="resetCanvasView()" class="glass-button w-9 h-9 rounded-xl flex items-center justify-center text-cyan-400 text-xs shadow-lg" title="Centrar Tablero">
+                    <button onclick="resetCanvasView()" class="glass-button w-9 h-9 rounded-xl flex items-center justify-center text-cyan-400 text-xs shadow-lg">
                         <i class="fa-solid fa-compress"></i>
                     </button>
                 </div>
 
-                <!-- Floating Reactions & Mobile Drawer Toggle -->
+                <!-- Emojis & Drawer mobile button -->
                 <div class="absolute bottom-4 right-4 z-10 flex items-center space-x-2">
                     <button onclick="toggleLeaderboardDrawer()" class="glass-button px-3 py-2 rounded-xl text-xs font-bold text-slate-200 flex items-center space-x-1.5 md:hidden shadow-lg">
                         <i class="fa-solid fa-trophy text-amber-400"></i>
@@ -303,56 +346,48 @@
                         <button onclick="sendReaction('😎')" class="w-8 h-8 rounded-xl hover:bg-slate-800 flex items-center justify-center text-lg active:scale-125 transition-transform">😎</button>
                         <button onclick="sendReaction('😱')" class="w-8 h-8 rounded-xl hover:bg-slate-800 flex items-center justify-center text-lg active:scale-125 transition-transform">😱</button>
                         <button onclick="sendReaction('👏')" class="w-8 h-8 rounded-xl hover:bg-slate-800 flex items-center justify-center text-lg active:scale-125 transition-transform">👏</button>
-                        <button onclick="sendReaction('💩')" class="w-8 h-8 rounded-xl hover:bg-slate-800 flex items-center justify-center text-lg active:scale-125 transition-transform">💩</button>
                     </div>
                 </div>
 
-                <!-- Floating Emoji Layer -->
+                <!-- Layer para Reacciones -->
                 <div id="emojiLayer" class="absolute inset-0 pointer-events-none overflow-hidden z-20"></div>
 
-                <!-- Turn Change Overlay Banner -->
+                <!-- Banner de Turno Cambiado -->
                 <div id="turnBanner" class="absolute top-6 left-1/2 -translate-x-1/2 pointer-events-none transition-all duration-500 opacity-0 transform -translate-y-4 z-20">
                     <div class="glass-panel px-6 py-2 rounded-full border border-cyan-500/50 shadow-2xl flex items-center space-x-2">
                         <span id="turnBannerText" class="font-extrabold text-xs sm:text-sm text-cyan-300 tracking-wide uppercase"></span>
                     </div>
                 </div>
-
             </div>
-
         </div>
 
-        <!-- LIVE MULTIPLAYER LEADERBOARD SIDEBAR -->
+        <!-- TABLA DE POSICIONES EN VIVO -->
         <aside id="leaderboardPanel" class="w-full md:w-72 bg-slate-900/95 border-t md:border-t-0 md:border-l border-slate-800 flex flex-col z-20 transition-transform duration-300 fixed md:relative bottom-0 left-0 right-0 md:translate-y-0 translate-y-full md:h-full max-h-[60vh] md:max-h-full rounded-t-2xl md:rounded-none shadow-2xl">
-            
             <div class="p-3 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
                 <div class="flex items-center space-x-2">
                     <i class="fa-solid fa-trophy text-amber-400 text-sm"></i>
-                    <h3 class="font-extrabold text-xs uppercase tracking-wider text-slate-200">Jugadores En Vivo (<span id="playerCount">0</span>/20)</h3>
+                    <h3 class="font-extrabold text-xs uppercase tracking-wider text-slate-200">Jugadores (<span id="playerCount">0</span>/20)</h3>
                 </div>
                 <button onclick="toggleLeaderboardDrawer()" class="md:hidden text-slate-400 hover:text-white p-1">
                     <i class="fa-solid fa-xmark text-base"></i>
                 </button>
             </div>
 
-            <!-- Player Cards List -->
             <div id="playerListContainer" class="flex-1 overflow-y-auto p-3 space-y-2">
-                <!-- Dynamic Player items -->
+                <!-- Lista inyectada -->
             </div>
 
-            <!-- Invite Code Share -->
             <div class="p-3 bg-slate-950/80 border-t border-slate-800 text-center">
-                <div class="text-[10px] text-slate-400 mb-1">Invita a tus amigos compartiendo el enlace</div>
-                <button onclick="copyRoomCode()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 font-mono text-xs font-bold rounded-lg flex items-center justify-center space-x-2 transition-colors">
+                <button onclick="copyRoomLink()" class="w-full py-2 bg-slate-800 hover:bg-slate-700 border border-slate-700 text-cyan-400 font-mono text-xs font-bold rounded-lg flex items-center justify-center space-x-2 transition-colors">
                     <i class="fa-regular fa-copy"></i>
                     <span>COPIAR ENLACE DE SALA</span>
                 </button>
             </div>
-
         </aside>
 
     </main>
 
-    <!-- RULES MODAL -->
+    <!-- MODAL REGLAS -->
     <div id="rulesModal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-md z-50 flex items-center justify-center p-4 hidden">
         <div class="max-w-lg w-full glass-panel rounded-2xl p-6 border border-slate-800 shadow-2xl max-h-[85vh] overflow-y-auto">
             <div class="flex items-center justify-between border-b border-slate-800 pb-3 mb-4">
@@ -367,66 +402,47 @@
 
             <div class="space-y-4 text-xs text-slate-300 leading-relaxed">
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <h4 class="font-bold text-cyan-400 mb-1 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-bullseye"></i>
-                        <span>1. Objetivo</span>
-                    </h4>
-                    <p>Conecta puntos trazando líneas para completar la mayor cantidad de cajas de $1\times 1$ posibles antes de que el tablero se llene.</p>
+                    <h4 class="font-bold text-cyan-400 mb-1">1. Objetivo</h4>
+                    <p>Conecta puntos trazando líneas para cerrar cajas de $1\times 1$. El jugador con más cajas al finalizar gana.</p>
                 </div>
-
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <h4 class="font-bold text-emerald-400 mb-1 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-gift"></i>
-                        <span>2. Regla del Turno Extra</span>
-                    </h4>
-                    <p>Cuando la 4ª línea de una caja es trazada por ti, la caja se marca con tu color y avatar, obtienes <strong>+1 punto</strong> y ¡ganas un <strong>TURNO EXTRA</strong> consecutivo!</p>
+                    <h4 class="font-bold text-emerald-400 mb-1">2. Turnos Extra</h4>
+                    <p>Si la línea que trazas completa un cuadrado, esa caja es tuya (+1 Punto) y obtienes un <strong>TURNO EXTRA INMEDIATO</strong>.</p>
                 </div>
-
                 <div class="bg-slate-900/80 p-3 rounded-xl border border-slate-800">
-                    <h4 class="font-bold text-amber-400 mb-1 flex items-center space-x-1.5">
-                        <i class="fa-solid fa-stopwatch"></i>
-                        <span>3. Reloj por Turno</span>
-                    </h4>
-                    <p>Si se agota tu tiempo límite sin haber trazado una línea, el sistema elegirá una línea válida aleatoria para garantizar la continuidad del juego sin pausas.</p>
+                    <h4 class="font-bold text-amber-400 mb-1">3. Reloj por Turno</h4>
+                    <p>Si tu tiempo llega a 0, el juego colocará una línea aleatoria por ti para no pausar la partida.</p>
                 </div>
             </div>
 
-            <button onclick="toggleModal('rulesModal')" class="w-full mt-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl transition-colors text-xs uppercase tracking-wider">
+            <button onclick="toggleModal('rulesModal')" class="w-full mt-5 py-2.5 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-black rounded-xl text-xs uppercase">
                 ¡Entendido!
             </button>
         </div>
     </div>
 
-    <!-- VICTORY MODAL -->
+    <!-- MODAL VICTORIA -->
     <div id="victoryModal" class="fixed inset-0 bg-slate-950/90 backdrop-blur-lg z-50 flex items-center justify-center p-4 hidden">
-        <div class="max-w-md w-full glass-panel rounded-2xl p-6 border border-amber-500/40 shadow-2xl text-center relative overflow-hidden">
-            
+        <div class="max-w-md w-full glass-panel rounded-2xl p-6 border border-amber-500/40 shadow-2xl text-center">
             <div class="text-5xl mb-2 animate-bounce">🏆</div>
-            <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 via-amber-400 to-yellow-500 tracking-wide">
-                ¡PARTIDA FINALIZADA!
+            <h2 class="text-2xl font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-300 to-yellow-500">
+                ¡FIN DE LA PARTIDA!
             </h2>
-            <p class="text-xs text-slate-400 mt-1 mb-5">Resultados y Podio Final</p>
-
-            <div id="podiumList" class="space-y-2 mb-6 max-h-60 overflow-y-auto">
-                <!-- Podiums -->
-            </div>
-
-            <button onclick="leaveRoomAndReturnLobby()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-extrabold text-xs rounded-xl shadow-lg uppercase tracking-wider">
+            <div id="podiumList" class="space-y-2 my-5 max-h-60 overflow-y-auto"></div>
+            <button onclick="leaveRoomAndReturnLobby()" class="w-full py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white font-extrabold text-xs rounded-xl shadow-lg">
                 Volver al Menú Principal
             </button>
         </div>
     </div>
 
-    <!-- FIREBASE & JS APPLICATION LOGIC -->
+    <!-- LÓGICA DE JUEGO Y FIREBASE DE RESPALDO -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { 
-            getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, runTransaction 
-        } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, updateDoc, onSnapshot, runTransaction } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Explicit User Provided Firebase Credentials for project: proyecto1-9640f
-        const userProvidedConfig = {
+        // Configuración de Firebase
+        const firebaseConfig = {
             apiKey: "AIzaSyBxbTdaqWLZMVd7jmPr2zqByubhfI6qB9g",
             authDomain: "proyecto1-9640f.firebaseapp.com",
             projectId: "proyecto1-9640f",
@@ -435,32 +451,16 @@
             appId: "1:444721038399:web:90087e118688d5db6a648a"
         };
 
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'proyecto1-9640f-timbiriche';
-        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : userProvidedConfig;
+        const AVATARS = ['🚀', '⚡', '👑', '🐉', '🎯', '🐯', '🤖', '🔮', '💎', '🦄', '🛸', '🌋', '🦁', '👾', '🦊', '⚔️', '🪐', '🏆', '💥', '🎩'];
+        const PLAYER_COLORS = ['#00f0ff', '#ff007f', '#39ff14', '#a100ff', '#ffaa00', '#ff2a2a', '#ff6600', '#00ff88', '#ff00d4', '#00bfff'];
 
-        const app = initializeApp(firebaseConfig);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-
-        // 20 Unique Neon Cyberpunk Colors for up to 20 Players
-        const PLAYER_COLORS = [
-            '#00f0ff', '#ff007f', '#39ff14', '#a100ff', '#ffaa00', 
-            '#ff2a2a', '#ff6600', '#00ff88', '#ff00d4', '#00bfff', 
-            '#dfff00', '#f000ff', '#ffd700', '#6366f1', '#ff6f61', 
-            '#00ffd5', '#d946ef', '#00ff66', '#ff4500', '#f8fafc'
-        ];
-
-        // 20 Unique Avatars
-        const AVATARS = [
-            '🚀', '⚡', '👑', '🐉', '🎯', '🐯', '🤖', '🔮', 
-            '💎', '🦄', '🛸', '🌋', '🦁', '👾', '🦊', '⚔️', 
-            '🪐', '🏆', '💥', '🎩'
-        ];
-
-        // Local Application State
-        let currentUser = null;
-        let localPlayerInfo = {
-            id: null,
+        // Variables de Estado Local
+        let app, auth, db;
+        let isFirebaseActive = false;
+        let isDemoMode = false;
+        
+        let localPlayer = {
+            id: 'user_' + Math.random().toString(36).substr(2, 6),
             name: '',
             avatar: '🚀',
             color: PLAYER_COLORS[0]
@@ -473,7 +473,7 @@
         let soundEnabled = true;
         let turnTimerInterval = null;
 
-        // Interactive Canvas Engine Variables
+        // Canvas & Audio
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         let transform = { x: 0, y: 0, scale: 1 };
@@ -482,10 +482,9 @@
         let hoverLine = null;
         let touchStartDist = 0;
 
-        // Audio Synthesizer
         const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
 
-        function playSynthSound(type) {
+        function playSound(type) {
             if (!soundEnabled || !audioCtx) return;
             try {
                 if (audioCtx.state === 'suspended') audioCtx.resume();
@@ -496,109 +495,110 @@
                 gain.connect(audioCtx.destination);
 
                 if (type === 'line') {
-                    osc.type = 'sine';
                     osc.frequency.setValueAtTime(440, now);
-                    osc.frequency.exponentialRampToValueAtTime(880, now + 0.08);
-                    gain.gain.setValueAtTime(0.15, now);
+                    gain.gain.setValueAtTime(0.1, now);
                     gain.gain.linearRampToValueAtTime(0.01, now + 0.08);
                     osc.start(now);
                     osc.stop(now + 0.08);
                 } else if (type === 'box') {
-                    [523.25, 659.25, 783.99, 1046.50].forEach((freq, idx) => {
-                        const o = audioCtx.createOscillator();
-                        const g = audioCtx.createGain();
-                        o.connect(g);
-                        g.connect(audioCtx.destination);
-                        o.type = 'triangle';
-                        o.frequency.setValueAtTime(freq, now + idx * 0.05);
-                        g.gain.setValueAtTime(0.2, now + idx * 0.05);
-                        g.gain.linearRampToValueAtTime(0.01, now + idx * 0.05 + 0.2);
-                        o.start(now + idx * 0.05);
-                        o.stop(now + idx * 0.05 + 0.2);
-                    });
-                } else if (type === 'tick') {
-                    osc.type = 'square';
-                    osc.frequency.setValueAtTime(220, now);
-                    gain.gain.setValueAtTime(0.05, now);
-                    gain.gain.linearRampToValueAtTime(0.01, now + 0.03);
+                    osc.frequency.setValueAtTime(880, now);
+                    gain.gain.setValueAtTime(0.2, now);
+                    gain.gain.linearRampToValueAtTime(0.01, now + 0.2);
                     osc.start(now);
-                    osc.stop(now + 0.03);
-                } else if (type === 'win') {
-                    [440, 554.37, 659.25, 880].forEach((freq, idx) => {
-                        const o = audioCtx.createOscillator();
-                        const g = audioCtx.createGain();
-                        o.connect(g);
-                        g.connect(audioCtx.destination);
-                        o.type = 'sine';
-                        o.frequency.setValueAtTime(freq, now + idx * 0.1);
-                        g.gain.setValueAtTime(0.25, now + idx * 0.1);
-                        g.gain.linearRampToValueAtTime(0.01, now + idx * 0.1 + 0.4);
-                        o.start(now + idx * 0.1);
-                        o.stop(now + idx * 0.1 + 0.4);
-                    });
+                    osc.stop(now + 0.2);
                 }
-            } catch (e) {
-                console.warn('Audio error:', e);
-            }
+            } catch (e) {}
         }
 
+        // Inicialización
         window.addEventListener('DOMContentLoaded', async () => {
-            initAvatarPicker();
+            initRegistrationOptions();
             resizeCanvas();
             window.addEventListener('resize', resizeCanvas);
 
-            // Auto detect room code from URL parameter or hash
+            // Intentar conectar Firebase
+            try {
+                app = initializeApp(firebaseConfig);
+                auth = getAuth(app);
+                db = getFirestore(app);
+
+                await signInAnonymously(auth);
+                isFirebaseActive = true;
+                updateConnectionBadge(true, "Firebase Conectado");
+            } catch (err) {
+                console.warn("Firebase no respondió o Auth anónimo desactivado:", err);
+                isFirebaseActive = false;
+                updateConnectionBadge(false, "Modo Respaldo / Demo");
+            }
+
+            // Detectar sala por URL
             const urlParams = new URLSearchParams(window.location.search);
-            const roomFromUrl = urlParams.get('room') || window.location.hash.replace('#', '').toUpperCase();
-            if (roomFromUrl && roomFromUrl.length === 6) {
-                document.getElementById('joinCodeInput').value = roomFromUrl;
+            const roomCode = urlParams.get('room');
+            if (roomCode) {
+                document.getElementById('joinCodeInput').value = roomCode.toUpperCase();
                 switchLobbyTab('join');
             }
 
-            // Authentication Rule 3 compliance
-            try {
-                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
-                    await signInAnonymously(auth);
-                }
-            } catch (err) {
-                console.warn('Fallback anonymous auth:', err);
-                await signInAnonymously(auth);
-            }
-
-            onAuthStateChanged(auth, (user) => {
-                if (user) {
-                    currentUser = user;
-                    localPlayerInfo.id = user.uid;
-                }
-            });
-
             setupCanvasEvents();
-            requestAnimationFrame(renderCanvasLoop);
+            requestAnimationFrame(renderLoop);
         });
 
-        function initAvatarPicker() {
-            const picker = document.getElementById('avatarPicker');
-            picker.innerHTML = '';
+        function updateConnectionBadge(online, text) {
+            const badge = document.getElementById('connectionBadge');
+            const dot = document.getElementById('connectionDot');
+            const txt = document.getElementById('connectionText');
+            badge.classList.remove('hidden');
+            txt.innerText = text;
+
+            if (online) {
+                dot.className = "w-2 h-2 rounded-full bg-emerald-400 mr-1.5 animate-pulse";
+            } else {
+                dot.className = "w-2 h-2 rounded-full bg-amber-400 mr-1.5";
+            }
+        }
+
+        function initRegistrationOptions() {
+            // Avatars
+            const avContainer = document.getElementById('regAvatarPicker');
+            avContainer.innerHTML = '';
             AVATARS.forEach((av, idx) => {
                 const btn = document.createElement('button');
                 btn.type = 'button';
                 btn.className = `p-2 rounded-xl text-xl hover:bg-slate-800 transition-all ${idx === 0 ? 'bg-cyan-500/20 ring-2 ring-cyan-500' : ''}`;
-                btn.innerHTML = av;
+                btn.innerText = av;
                 btn.onclick = () => {
-                    document.querySelectorAll('#avatarPicker button').forEach(b => b.className = 'p-2 rounded-xl text-xl hover:bg-slate-800 transition-all');
+                    document.querySelectorAll('#regAvatarPicker button').forEach(b => b.className = 'p-2 rounded-xl text-xl hover:bg-slate-800 transition-all');
                     btn.className = 'p-2 rounded-xl text-xl bg-cyan-500/20 ring-2 ring-cyan-500';
-                    localPlayerInfo.avatar = av;
+                    localPlayer.avatar = av;
                 };
-                picker.appendChild(btn);
+                avContainer.appendChild(btn);
+            });
+
+            // Colors
+            const colorContainer = document.getElementById('regColorPicker');
+            colorContainer.innerHTML = '';
+            PLAYER_COLORS.forEach((color, idx) => {
+                const btn = document.createElement('button');
+                btn.type = 'button';
+                btn.className = `w-8 h-8 rounded-full border-2 transition-transform ${idx === 0 ? 'scale-110 border-white' : 'border-transparent'}`;
+                btn.style.backgroundColor = color;
+                btn.onclick = () => {
+                    document.querySelectorAll('#regColorPicker button').forEach(b => b.className = 'w-8 h-8 rounded-full border-2 border-transparent transition-transform');
+                    btn.className = 'w-8 h-8 rounded-full border-2 border-white scale-110';
+                    localPlayer.color = color;
+                };
+                colorContainer.appendChild(btn);
             });
         }
 
-        // Firestore Strict Path (Rule 1)
-        function getRoomDocRef(code) {
-            return doc(db, 'artifacts', appId, 'public', 'data', 'rooms', code.toUpperCase());
-        }
+        window.handleRegistration = function(e) {
+            e.preventDefault();
+            const nameInput = document.getElementById('regNameInput').value.trim();
+            localPlayer.name = nameInput || `Jugador_${Math.floor(Math.random() * 900 + 100)}`;
+
+            document.getElementById('registerScreen').classList.add('hidden');
+            document.getElementById('landingLobbyScreen').classList.remove('hidden');
+        };
 
         window.switchLobbyTab = function(tab) {
             const createBtn = document.getElementById('tabCreateBtn');
@@ -623,394 +623,402 @@
             selectedGridSize = size;
             document.querySelectorAll('.grid-opt-btn').forEach(btn => {
                 if (parseInt(btn.getAttribute('data-size')) === size) {
-                    btn.classList.add('border-cyan-500', 'ring-1', 'ring-cyan-500');
+                    btn.classList.add('border-cyan-500');
+                    btn.classList.remove('border-slate-700');
                 } else {
-                    btn.classList.remove('border-cyan-500', 'ring-1', 'ring-cyan-500');
+                    btn.classList.remove('border-cyan-500');
+                    btn.classList.add('border-slate-700');
                 }
             });
         };
 
-        function showLobbyToast(msg) {
-            const toast = document.getElementById('lobbyToast');
-            toast.innerText = msg;
-            toast.classList.remove('hidden');
-            setTimeout(() => toast.classList.add('hidden'), 3500);
-        }
-
-        function getPlayerName() {
-            const val = document.getElementById('playerNameInput').value.trim();
-            return val || `Jugador_${Math.floor(Math.random() * 899 + 100)}`;
-        }
-
-        // Room Creation
+        // Crear Sala
         window.createNewRoom = async function() {
-            if (!currentUser) return;
-            const name = getPlayerName();
-            localPlayerInfo.name = name;
-
             const code = Math.random().toString(36).substring(2, 8).toUpperCase();
             const timerSecs = parseInt(document.getElementById('timerSelect').value);
-            const roomRef = getRoomDocRef(code);
+            
+            const btnText = document.getElementById('btnCreateText');
+            btnText.innerText = "CREANDO SALA...";
 
-            const initialData = {
+            const roomObj = {
                 code: code,
                 createdAt: Date.now(),
                 gridSize: selectedGridSize,
                 timerSeconds: timerSecs,
                 status: 'lobby',
-                hostId: currentUser.uid,
+                hostId: localPlayer.id,
                 currentTurnIndex: 0,
-                playerOrder: [currentUser.uid],
+                playerOrder: [localPlayer.id],
                 turnDeadline: 0,
                 players: {
-                    [currentUser.uid]: {
-                        id: currentUser.uid,
-                        name: name,
-                        avatar: localPlayerInfo.avatar,
-                        color: PLAYER_COLORS[0],
-                        score: 0,
-                        isHost: true,
-                        joinedAt: Date.now()
-                    }
+                    [localPlayer.id]: { ...localPlayer, score: 0, isHost: true }
                 },
                 lines: {},
                 boxes: {}
             };
 
-            try {
-                await setDoc(roomRef, initialData);
-                connectToRoom(code);
-            } catch (err) {
-                console.error("Error creating room:", err);
-                showLobbyToast("Error de conexión a Firestore.");
+            if (isFirebaseActive) {
+                try {
+                    const roomRef = doc(db, 'timbiriche_rooms', code);
+                    await setDoc(roomRef, roomObj);
+                    connectRoomListener(code);
+                } catch (err) {
+                    console.error("Error conectando Firebase, usando Modo Demo:", err);
+                    startDemoRoom(roomObj);
+                }
+            } else {
+                startDemoRoom(roomObj);
             }
         };
 
-        // Join Room
         window.joinExistingRoom = async function() {
-            if (!currentUser) return;
-            const codeInput = document.getElementById('joinCodeInput').value.trim().toUpperCase();
-            if (!codeInput || codeInput.length < 4) {
-                showLobbyToast("Por favor ingresa un código válido.");
-                return;
-            }
+            const code = document.getElementById('joinCodeInput').value.trim().toUpperCase();
+            if (!code || code.length < 4) return;
 
-            const name = getPlayerName();
-            localPlayerInfo.name = name;
-            const roomRef = getRoomDocRef(codeInput);
+            if (isFirebaseActive) {
+                try {
+                    const roomRef = doc(db, 'timbiriche_rooms', code);
+                    const snap = await getDoc(roomRef);
+                    if (!snap.exists()) {
+                        alert("Sala no encontrada.");
+                        return;
+                    }
 
-            try {
-                const snap = await getDoc(roomRef);
-                if (!snap.exists()) {
-                    showLobbyToast("La sala especificada no fue encontrada.");
-                    return;
+                    const data = snap.data();
+                    if (!data.playerOrder.includes(localPlayer.id)) {
+                        data.playerOrder.push(localPlayer.id);
+                        data.players[localPlayer.id] = { ...localPlayer, score: 0, isHost: false };
+                        await updateDoc(roomRef, {
+                            playerOrder: data.playerOrder,
+                            [`players.${localPlayer.id}`]: data.players[localPlayer.id]
+                        });
+                    }
+
+                    connectRoomListener(code);
+                } catch (err) {
+                    alert("No se pudo conectar a la sala en vivo.");
                 }
-
-                const data = snap.data();
-                const currentPlayers = data.playerOrder || [];
-
-                if (currentPlayers.length >= 20 && !currentPlayers.includes(currentUser.uid)) {
-                    showLobbyToast("Esta sala ya alcanzó el límite máximo de 20 jugadores.");
-                    return;
-                }
-
-                const playerIndex = currentPlayers.includes(currentUser.uid) 
-                    ? currentPlayers.indexOf(currentUser.uid) 
-                    : currentPlayers.length;
-                const assignedColor = PLAYER_COLORS[playerIndex % PLAYER_COLORS.length];
-                localPlayerInfo.color = assignedColor;
-
-                if (!currentPlayers.includes(currentUser.uid)) {
-                    await updateDoc(roomRef, {
-                        playerOrder: [...currentPlayers, currentUser.uid],
-                        [`players.${currentUser.uid}`]: {
-                            id: currentUser.uid,
-                            name: name,
-                            avatar: localPlayerInfo.avatar,
-                            color: assignedColor,
-                            score: 0,
-                            isHost: false,
-                            joinedAt: Date.now()
-                        }
-                    });
-                }
-
-                connectToRoom(codeInput);
-            } catch (err) {
-                console.error("Error joining room:", err);
-                showLobbyToast("No se pudo conectar a la sala.");
+            } else {
+                alert("Para unirte a otros dispositivos asegúrate de activar Firestore en Firebase Console.");
             }
         };
 
-        function connectToRoom(code) {
+        function startDemoRoom(obj) {
+            isDemoMode = true;
+            roomData = obj;
+            currentRoomCode = obj.code;
+            
+            // Agregar Bots de prueba
+            const bot1Id = 'bot_1';
+            roomData.playerOrder.push(bot1Id);
+            roomData.players[bot1Id] = { id: bot1Id, name: 'Bot Alfa 🤖', avatar: '🤖', color: '#ff007f', score: 0, isHost: false };
+
+            document.getElementById('landingLobbyScreen').classList.add('hidden');
+            document.getElementById('displayRoomCode').innerText = obj.code;
+            document.getElementById('roomCodeBadge').classList.remove('hidden');
+
+            updateRoomUI(roomData);
+        }
+
+        function connectRoomListener(code) {
             currentRoomCode = code;
+            document.getElementById('landingLobbyScreen').classList.add('hidden');
             document.getElementById('displayRoomCode').innerText = code;
             document.getElementById('roomCodeBadge').classList.remove('hidden');
-            document.getElementById('lobbyScreen').classList.add('hidden');
 
-            const roomRef = getRoomDocRef(code);
-            if (roomUnsubscribe) roomUnsubscribe();
-
-            roomUnsubscribe = onSnapshot(roomRef, (snapshot) => {
-                if (!snapshot.exists()) {
-                    alert("La sala ha finalizado o fue cerrada.");
-                    leaveRoomAndReturnLobby();
-                    return;
+            const roomRef = doc(db, 'timbiriche_rooms', code);
+            roomUnsubscribe = onSnapshot(roomRef, (snap) => {
+                if (snap.exists()) {
+                    roomData = snap.data();
+                    updateRoomUI(roomData);
                 }
-
-                const oldData = roomData;
-                roomData = snapshot.data();
-                handleRoomStateUpdate(oldData, roomData);
-            }, (err) => {
-                console.error("Snapshot listener error:", err);
             });
         }
 
-        function handleRoomStateUpdate(oldData, newData) {
-            const playersList = Object.values(newData.players || {});
+        function updateRoomUI(data) {
+            const playersList = Object.values(data.players || {});
             document.getElementById('playerCount').innerText = playersList.length;
-            renderLeaderboard(playersList, newData.currentTurnIndex, newData.playerOrder);
+            renderLeaderboard(playersList, data.currentTurnIndex, data.playerOrder);
 
-            const isHost = newData.hostId === currentUser.uid;
+            const isHost = data.hostId === localPlayer.id;
             const hostControls = document.getElementById('hostControls');
-            if (isHost && newData.status === 'lobby') {
+            if (isHost && data.status === 'lobby') {
                 hostControls.classList.remove('hidden');
             } else {
                 hostControls.classList.add('hidden');
             }
 
-            if (oldData && oldData.boxes && newData.boxes) {
-                const oldBoxesCount = Object.keys(oldData.boxes).length;
-                const newBoxesCount = Object.keys(newData.boxes).length;
-                if (newBoxesCount > oldBoxesCount) {
-                    playSynthSound('box');
-                } else if (Object.keys(oldData.lines || {}).length < Object.keys(newData.lines || {}).length) {
-                    playSynthSound('line');
-                }
-            }
-
-            if (newData.status === 'playing') {
-                const currentTurnUserId = newData.playerOrder[newData.currentTurnIndex];
-                if (!oldData || oldData.currentTurnIndex !== newData.currentTurnIndex) {
-                    const activeP = newData.players[currentTurnUserId];
-                    if (activeP) {
-                        showTurnBanner(activeP.id === currentUser.uid ? "¡ES TU TURNO!" : `Turno de ${activeP.name}`);
-                    }
-                }
-            }
-
-            if (newData.status === 'playing') {
-                const currentTurnUserId = newData.playerOrder[newData.currentTurnIndex];
-                const activeP = newData.players[currentTurnUserId];
+            if (data.status === 'playing') {
+                const currentTurnUserId = data.playerOrder[data.currentTurnIndex];
+                const activeP = data.players[currentTurnUserId];
                 if (activeP) {
-                    const avatarElem = document.getElementById('turnAvatar');
-                    avatarElem.innerText = activeP.avatar;
-                    avatarElem.style.borderColor = activeP.color;
-                    avatarElem.style.backgroundColor = `${activeP.color}20`;
+                    document.getElementById('turnAvatar').innerText = activeP.avatar;
                     document.getElementById('turnPlayerName').innerText = activeP.name;
                     document.getElementById('turnPlayerName').style.color = activeP.color;
                 }
-            } else if (newData.status === 'lobby') {
+            } else {
                 document.getElementById('turnPlayerName').innerText = "Esperando inicio...";
-                document.getElementById('turnAvatar').innerText = "⏳";
             }
 
-            if (newData.status === 'finished') {
-                showVictoryPodium(newData);
+            if (data.status === 'finished') {
+                showVictory(data);
             }
 
-            resetCanvasViewIfNeeded();
-            startTurnTimer(newData);
+            resetCanvasView();
+            startTimer(data);
         }
 
         window.hostStartGame = async function() {
-            if (!currentRoomCode || !roomData) return;
-            const roomRef = getRoomDocRef(currentRoomCode);
-            const timerSecs = roomData.timerSeconds || 15;
-            const deadline = timerSecs > 0 ? Date.now() + timerSecs * 1000 : 0;
+            if (!roomData) return;
+            const deadline = roomData.timerSeconds > 0 ? Date.now() + roomData.timerSeconds * 1000 : 0;
 
-            await updateDoc(roomRef, {
-                status: 'playing',
-                turnDeadline: deadline
-            });
+            if (isDemoMode) {
+                roomData.status = 'playing';
+                roomData.turnDeadline = deadline;
+                updateRoomUI(roomData);
+            } else {
+                const roomRef = doc(db, 'timbiriche_rooms', currentRoomCode);
+                await updateDoc(roomRef, { status: 'playing', turnDeadline: deadline });
+            }
         };
 
-        function startTurnTimer(data) {
+        function startTimer(data) {
             if (turnTimerInterval) clearInterval(turnTimerInterval);
-
-            const timerContainer = document.getElementById('timerContainer');
-            if (data.status !== 'playing' || !data.timerSeconds) {
-                timerContainer.classList.add('opacity-40');
-                document.getElementById('timerText').innerText = "--";
-                document.getElementById('timerProgressBar').style.width = '100%';
-                return;
-            }
-
-            timerContainer.classList.remove('opacity-40');
+            if (data.status !== 'playing' || !data.timerSeconds) return;
 
             turnTimerInterval = setInterval(() => {
                 const now = Date.now();
-                const remainingMs = Math.max(0, data.turnDeadline - now);
-                const remainingSecs = Math.ceil(remainingMs / 1000);
+                const remaining = Math.max(0, data.turnDeadline - now);
+                const secs = Math.ceil(remaining / 1000);
 
-                document.getElementById('timerText').innerText = `${remainingSecs}s`;
-                const progressPct = Math.min(100, (remainingMs / (data.timerSeconds * 1000)) * 100);
-                document.getElementById('timerProgressBar').style.width = `${progressPct}%`;
+                document.getElementById('timerText').innerText = `${secs}s`;
+                document.getElementById('timerProgressBar').style.width = `${(remaining / (data.timerSeconds * 1000)) * 100}%`;
 
-                if (remainingSecs <= 3 && remainingSecs > 0 && remainingMs % 1000 < 100) {
-                    playSynthSound('tick');
-                }
-
-                const currentTurnUserId = data.playerOrder[data.currentTurnIndex];
-                if (remainingMs <= 0 && currentTurnUserId === currentUser.uid) {
+                if (remaining <= 0) {
                     clearInterval(turnTimerInterval);
-                    executeRandomTimeoutMove();
+                    const currentTurnUserId = data.playerOrder[data.currentTurnIndex];
+                    if (currentTurnUserId === localPlayer.id || isDemoMode) {
+                        makeRandomMove();
+                    }
                 }
             }, 250);
         }
 
-        async function executeRandomTimeoutMove() {
-            if (!roomData || roomData.status !== 'playing') return;
-            const grid = roomData.gridSize;
-            const validLines = [];
-
-            for (let r = 0; r < grid; r++) {
-                for (let c = 0; c < grid - 1; c++) {
-                    const key = `h_${r}_${c}`;
-                    if (!roomData.lines[key]) validLines.push(key);
-                }
-            }
-            for (let r = 0; r < grid - 1; r++) {
-                for (let c = 0; c < grid; c++) {
-                    const key = `v_${r}_${c}`;
-                    if (!roomData.lines[key]) validLines.push(key);
-                }
-            }
-
-            if (validLines.length > 0) {
-                const randomKey = validLines[Math.floor(Math.random() * validLines.length)];
-                await playLineMove(randomKey);
-            }
-        }
-
         async function playLineMove(lineKey) {
-            if (!currentRoomCode || !roomData || roomData.status !== 'playing') return;
+            if (!roomData || roomData.status !== 'playing') return;
             const currentTurnUserId = roomData.playerOrder[roomData.currentTurnIndex];
-            if (currentTurnUserId !== currentUser.uid) return;
 
-            const roomRef = getRoomDocRef(currentRoomCode);
+            if (currentTurnUserId !== localPlayer.id && !isDemoMode) return;
+            if (roomData.lines[lineKey]) return;
 
-            try {
-                await runTransaction(db, async (transaction) => {
-                    const snap = await transaction.get(roomRef);
+            playSound('line');
+
+            if (isDemoMode) {
+                applyMoveLocally(lineKey, currentTurnUserId);
+            } else {
+                const roomRef = doc(db, 'timbiriche_rooms', currentRoomCode);
+                await runTransaction(db, async (trans) => {
+                    const snap = await trans.get(roomRef);
                     if (!snap.exists()) return;
                     const data = snap.data();
 
                     if (data.lines[lineKey]) return;
 
-                    const newLines = { ...data.lines, [lineKey]: currentUser.uid };
-                    const newBoxes = { ...data.boxes };
-                    const players = { ...data.players };
-                    let boxesCompletedCount = 0;
-
-                    const parts = lineKey.split('_');
-                    const type = parts[0];
-                    const r = parseInt(parts[1]);
-                    const c = parseInt(parts[2]);
                     const grid = data.gridSize;
+                    const newLines = { ...data.lines, [lineKey]: currentTurnUserId };
+                    const newBoxes = { ...data.boxes };
+                    let boxesCompleted = 0;
 
-                    const isLineTaken = (lk) => !!newLines[lk];
+                    const [type, rStr, cStr] = lineKey.split('_');
+                    const r = parseInt(rStr);
+                    const c = parseInt(cStr);
 
-                    const checkAndClaimBox = (br, bc) => {
+                    const checkBox = (br, bc) => {
                         if (br < 0 || br >= grid - 1 || bc < 0 || bc >= grid - 1) return;
-                        const boxKey = `b_${br}_${bc}`;
-                        if (newBoxes[boxKey]) return;
+                        const bk = `b_${br}_${bc}`;
+                        if (newBoxes[bk]) return;
 
-                        const top = `h_${br}_${bc}`;
-                        const bottom = `h_${br + 1}_${bc}`;
-                        const left = `v_${br}_${bc}`;
-                        const right = `v_${br}_${bc + 1}`;
-
-                        if (isLineTaken(top) && isLineTaken(bottom) && isLineTaken(left) && isLineTaken(right)) {
-                            newBoxes[boxKey] = currentUser.uid;
-                            boxesCompletedCount++;
+                        if (newLines[`h_${br}_${bc}`] && newLines[`h_${br+1}_${bc}`] &&
+                            newLines[`v_${br}_${bc}`] && newLines[`v_${br}_${bc+1}`]) {
+                            newBoxes[bk] = currentTurnUserId;
+                            boxesCompleted++;
                         }
                     };
 
-                    if (type === 'h') {
-                        checkAndClaimBox(r - 1, c);
-                        checkAndClaimBox(r, c);
-                    } else if (type === 'v') {
-                        checkAndClaimBox(r, c - 1);
-                        checkAndClaimBox(r, c);
-                    }
+                    if (type === 'h') { checkBox(r - 1, c); checkBox(r, c); }
+                    else { checkBox(r, c - 1); checkBox(r, c); }
 
-                    let nextTurnIndex = data.currentTurnIndex;
-                    if (boxesCompletedCount > 0) {
-                        players[currentUser.uid].score = (players[currentUser.uid].score || 0) + boxesCompletedCount;
+                    let nextIndex = data.currentTurnIndex;
+                    if (boxesCompleted > 0) {
+                        data.players[currentTurnUserId].score += boxesCompleted;
+                        playSound('box');
                     } else {
-                        nextTurnIndex = (data.currentTurnIndex + 1) % data.playerOrder.length;
+                        nextIndex = (data.currentTurnIndex + 1) % data.playerOrder.length;
                     }
 
-                    const totalBoxesPossible = (grid - 1) * (grid - 1);
-                    const isGameOver = Object.keys(newBoxes).length >= totalBoxesPossible;
+                    const isOver = Object.keys(newBoxes).length >= (grid - 1) * (grid - 1);
+                    const deadline = data.timerSeconds > 0 ? Date.now() + data.timerSeconds * 1000 : 0;
 
-                    const timerSecs = data.timerSeconds || 15;
-                    const nextDeadline = timerSecs > 0 ? Date.now() + timerSecs * 1000 : 0;
-
-                    transaction.update(roomRef, {
+                    trans.update(roomRef, {
                         lines: newLines,
                         boxes: newBoxes,
-                        players: players,
-                        currentTurnIndex: nextTurnIndex,
-                        turnDeadline: nextDeadline,
-                        status: isGameOver ? 'finished' : 'playing'
+                        players: data.players,
+                        currentTurnIndex: nextIndex,
+                        turnDeadline: deadline,
+                        status: isOver ? 'finished' : 'playing'
                     });
                 });
-            } catch (err) {
-                console.error("Line transaction error:", err);
             }
         }
 
-        function renderLeaderboard(players, currentTurnIdx, playerOrder) {
+        function applyMoveLocally(lineKey, activeUserId) {
+            const grid = roomData.gridSize;
+            roomData.lines[lineKey] = activeUserId;
+            let boxesCompleted = 0;
+
+            const [type, rStr, cStr] = lineKey.split('_');
+            const r = parseInt(rStr);
+            const c = parseInt(cStr);
+
+            const checkBox = (br, bc) => {
+                if (br < 0 || br >= grid - 1 || bc < 0 || bc >= grid - 1) return;
+                const bk = `b_${br}_${bc}`;
+                if (roomData.boxes[bk]) return;
+
+                if (roomData.lines[`h_${br}_${bc}`] && roomData.lines[`h_${br+1}_${bc}`] &&
+                    roomData.lines[`v_${br}_${bc}`] && roomData.lines[`v_${br}_${bc+1}`]) {
+                    roomData.boxes[bk] = activeUserId;
+                    boxesCompleted++;
+                }
+            };
+
+            if (type === 'h') { checkBox(r - 1, c); checkBox(r, c); }
+            else { checkBox(r, c - 1); checkBox(r, c); }
+
+            if (boxesCompleted > 0) {
+                roomData.players[activeUserId].score += boxesCompleted;
+                playSound('box');
+            } else {
+                roomData.currentTurnIndex = (roomData.currentTurnIndex + 1) % roomData.playerOrder.length;
+            }
+
+            const isOver = Object.keys(roomData.boxes).length >= (grid - 1) * (grid - 1);
+            if (isOver) roomData.status = 'finished';
+
+            roomData.turnDeadline = roomData.timerSeconds > 0 ? Date.now() + roomData.timerSeconds * 1000 : 0;
+            updateRoomUI(roomData);
+        }
+
+        function makeRandomMove() {
+            if (!roomData) return;
+            const grid = roomData.gridSize;
+            const valid = [];
+
+            for (let r = 0; r < grid; r++)
+                for (let c = 0; c < grid - 1; c++)
+                    if (!roomData.lines[`h_${r}_${c}`]) valid.push(`h_${r}_${c}`);
+
+            for (let r = 0; r < grid - 1; r++)
+                for (let c = 0; c < grid; c++)
+                    if (!roomData.lines[`v_${r}_${c}`]) valid.push(`v_${r}_${c}`);
+
+            if (valid.length > 0) {
+                const pick = valid[Math.floor(Math.random() * valid.length)];
+                playLineMove(pick);
+            }
+        }
+
+        function renderLeaderboard(players, currentIdx, order) {
             const container = document.getElementById('playerListContainer');
             container.innerHTML = '';
-
-            const sorted = [...players].sort((a, b) => (b.score || 0) - (a.score || 0));
-            const currentTurnUserId = playerOrder ? playerOrder[currentTurnIdx] : null;
+            const sorted = [...players].sort((a, b) => b.score - a.score);
+            const activeId = order ? order[currentIdx] : null;
 
             sorted.forEach((p, idx) => {
-                const isTurn = p.id === currentTurnUserId && roomData?.status === 'playing';
-                const item = document.createElement('div');
-                item.className = `p-2.5 rounded-xl border transition-all flex items-center justify-between ${
-                    isTurn 
-                        ? 'bg-cyan-500/10 border-cyan-500/60 shadow-lg shadow-cyan-500/10' 
-                        : 'bg-slate-900/60 border-slate-800'
-                }`;
-
-                item.innerHTML = `
-                    <div class="flex items-center space-x-2.5 overflow-hidden">
-                        <span class="font-bold text-xs w-4 text-slate-500">${idx + 1}</span>
-                        <div class="w-8 h-8 rounded-lg flex items-center justify-center text-base border" style="background-color: ${p.color}20; border-color: ${p.color}">
-                            ${p.avatar}
-                        </div>
-                        <div class="truncate">
-                            <div class="font-bold text-xs text-white truncate flex items-center space-x-1">
-                                <span>${p.name}</span>
-                                ${p.id === currentUser?.uid ? '<span class="text-[9px] text-cyan-400 font-normal">(Tú)</span>' : ''}
-                            </div>
-                            <div class="text-[10px] text-slate-400 flex items-center space-x-1">
-                                ${p.isHost ? '<span class="text-amber-400 font-semibold">Anfitrión</span>' : 'Jugador'}
-                            </div>
-                        </div>
-                    </div>
+                const isTurn = p.id === activeId;
+                const div = document.createElement('div');
+                div.className = `p-2.5 rounded-xl border flex items-center justify-between ${isTurn ? 'bg-cyan-500/10 border-cyan-500' : 'bg-slate-900 border-slate-800'}`;
+                div.innerHTML = `
                     <div class="flex items-center space-x-2">
-                        ${isTurn ? '<span class="w-2 h-2 rounded-full bg-cyan-400 animate-ping"></span>' : ''}
-                        <span class="font-black text-sm text-cyan-400 font-mono">${p.score || 0} <span class="text-[10px] text-slate-500">pts</span></span>
+                        <span class="text-xs text-slate-500 font-bold">${idx + 1}</span>
+                        <div class="w-7 h-7 rounded-lg flex items-center justify-center text-sm border" style="background:${p.color}20; border-color:${p.color}">${p.avatar}</div>
+                        <span class="text-xs font-bold text-white truncate max-w-[90px]">${p.name}</span>
                     </div>
+                    <span class="font-mono text-xs font-black text-cyan-400">${p.score} pts</span>
                 `;
-                container.appendChild(item);
+                container.appendChild(div);
             });
+        }
+
+        function renderLoop() {
+            const rect = canvas.parentElement.getBoundingClientRect();
+            ctx.clearRect(0, 0, rect.width, rect.height);
+
+            if (roomData) {
+                ctx.save();
+                ctx.translate(transform.x, transform.y);
+                ctx.scale(transform.scale, transform.scale);
+
+                const grid = roomData.gridSize;
+                const spacing = 50;
+                const padding = 60;
+
+                // Cajas
+                for (let r = 0; r < grid - 1; r++) {
+                    for (let c = 0; c < grid - 1; c++) {
+                        const ownerId = roomData.boxes[`b_${r}_${c}`];
+                        if (ownerId && roomData.players[ownerId]) {
+                            const p = roomData.players[ownerId];
+                            ctx.fillStyle = `${p.color}35`;
+                            ctx.fillRect(padding + c * spacing, padding + r * spacing, spacing, spacing);
+                            ctx.fillStyle = p.color;
+                            ctx.font = 'bold 16px Outfit, sans-serif';
+                            ctx.textAlign = 'center';
+                            ctx.textBaseline = 'middle';
+                            ctx.fillText(p.avatar, padding + c * spacing + spacing / 2, padding + r * spacing + spacing / 2);
+                        }
+                    }
+                }
+
+                // Líneas
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                for (let r = 0; r < grid; r++) {
+                    for (let c = 0; c < grid - 1; c++) {
+                        const ownerId = roomData.lines[`h_${r}_${c}`];
+                        ctx.strokeStyle = ownerId && roomData.players[ownerId] ? roomData.players[ownerId].color : '#2a364f';
+                        ctx.beginPath();
+                        ctx.moveTo(padding + c * spacing, padding + r * spacing);
+                        ctx.lineTo(padding + (c + 1) * spacing, padding + r * spacing);
+                        ctx.stroke();
+                    }
+                }
+
+                for (let r = 0; r < grid - 1; r++) {
+                    for (let c = 0; c < grid; c++) {
+                        const ownerId = roomData.lines[`v_${r}_${c}`];
+                        ctx.strokeStyle = ownerId && roomData.players[ownerId] ? roomData.players[ownerId].color : '#2a364f';
+                        ctx.beginPath();
+                        ctx.moveTo(padding + c * spacing, padding + r * spacing);
+                        ctx.lineTo(padding + c * spacing, padding + (r + 1) * spacing);
+                        ctx.stroke();
+                    }
+                }
+
+                // Puntos
+                for (let r = 0; r < grid; r++) {
+                    for (let c = 0; c < grid; c++) {
+                        ctx.fillStyle = '#ffffff';
+                        ctx.beginPath();
+                        ctx.arc(padding + c * spacing, padding + r * spacing, 4, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                }
+
+                ctx.restore();
+            }
+
+            requestAnimationFrame(renderLoop);
         }
 
         function resizeCanvas() {
@@ -1019,241 +1027,23 @@
             canvas.width = rect.width * dpr;
             canvas.height = rect.height * dpr;
             ctx.scale(dpr, dpr);
-            if (roomData) resetCanvasViewIfNeeded();
         }
 
-        let viewInitialized = false;
-        function resetCanvasViewIfNeeded() {
-            if (!roomData || viewInitialized) return;
-            resetCanvasView();
-            viewInitialized = true;
-        }
-
-        window.resetCanvasView = function() {
+        function resetCanvasView() {
             if (!roomData) return;
-            const grid = roomData.gridSize;
             const container = canvas.parentElement.getBoundingClientRect();
-            const padding = 60;
-            const spacing = 50;
-            const boardWidth = (grid - 1) * spacing + padding * 2;
-            const boardHeight = (grid - 1) * spacing + padding * 2;
-
-            const scaleX = container.width / boardWidth;
-            const scaleY = container.height / boardHeight;
-            transform.scale = Math.min(scaleX, scaleY, 1.5);
-            transform.x = (container.width - boardWidth * transform.scale) / 2;
-            transform.y = (container.height - boardHeight * transform.scale) / 2;
-        };
-
-        window.zoomCanvas = function(factor) {
-            const container = canvas.parentElement.getBoundingClientRect();
-            const cx = container.width / 2;
-            const cy = container.height / 2;
-
-            const newScale = Math.max(0.4, Math.min(3.5, transform.scale * factor));
-            transform.x = cx - (cx - transform.x) * (newScale / transform.scale);
-            transform.y = cy - (cy - transform.y) * (newScale / transform.scale);
-            transform.scale = newScale;
-        };
-
-        function renderCanvasLoop() {
-            const container = canvas.parentElement.getBoundingClientRect();
-            ctx.clearRect(0, 0, container.width, container.height);
-
-            if (roomData) {
-                ctx.save();
-                ctx.translate(transform.x, transform.y);
-                ctx.scale(transform.scale, transform.scale);
-
-                drawTimbiricheBoard();
-
-                ctx.restore();
-            }
-
-            requestAnimationFrame(renderCanvasLoop);
+            const boardSize = (roomData.gridSize - 1) * 50 + 120;
+            const scale = Math.min(container.width / boardSize, container.height / boardSize, 1.2);
+            transform.scale = scale;
+            transform.x = (container.width - boardSize * scale) / 2;
+            transform.y = (container.height - boardSize * scale) / 2;
         }
 
-        function drawTimbiricheBoard() {
-            const grid = roomData.gridSize;
-            const spacing = 50;
-            const padding = 60;
-            const lines = roomData.lines || {};
-            const boxes = roomData.boxes || {};
-            const players = roomData.players || {};
-
-            // 1. Boxes
-            for (let r = 0; r < grid - 1; r++) {
-                for (let c = 0; c < grid - 1; c++) {
-                    const boxKey = `b_${r}_${c}`;
-                    const ownerId = boxes[boxKey];
-                    const x = padding + c * spacing;
-                    const y = padding + r * spacing;
-
-                    if (ownerId && players[ownerId]) {
-                        const owner = players[ownerId];
-                        ctx.fillStyle = `${owner.color}35`;
-                        ctx.fillRect(x, y, spacing, spacing);
-
-                        ctx.fillStyle = owner.color;
-                        ctx.font = 'bold 16px Outfit, sans-serif';
-                        ctx.textAlign = 'center';
-                        ctx.textBaseline = 'middle';
-                        ctx.fillText(owner.avatar, x + spacing / 2, y + spacing / 2);
-                    }
-                }
-            }
-
-            // 2. Lines
-            ctx.lineWidth = 6;
-            ctx.lineCap = 'round';
-
-            // Horizontal Lines
-            for (let r = 0; r < grid; r++) {
-                for (let c = 0; c < grid - 1; c++) {
-                    const lineKey = `h_${r}_${c}`;
-                    const ownerId = lines[lineKey];
-                    const x1 = padding + c * spacing;
-                    const y1 = padding + r * spacing;
-                    const x2 = x1 + spacing;
-                    const y2 = y1;
-
-                    if (ownerId && players[ownerId]) {
-                        ctx.strokeStyle = players[ownerId].color;
-                        ctx.shadowColor = players[ownerId].color;
-                        ctx.shadowBlur = 8;
-                        ctx.beginPath();
-                        ctx.moveTo(x1, y1);
-                        ctx.lineTo(x2, y2);
-                        ctx.stroke();
-                        ctx.shadowBlur = 0;
-                    } else {
-                        ctx.strokeStyle = 'rgba(51, 65, 85, 0.3)';
-                        ctx.beginPath();
-                        ctx.moveTo(x1, y1);
-                        ctx.lineTo(x2, y2);
-                        ctx.stroke();
-                    }
-                }
-            }
-
-            // Vertical Lines
-            for (let r = 0; r < grid - 1; r++) {
-                for (let c = 0; c < grid; c++) {
-                    const lineKey = `v_${r}_${c}`;
-                    const ownerId = lines[lineKey];
-                    const x1 = padding + c * spacing;
-                    const y1 = padding + r * spacing;
-                    const x2 = x1;
-                    const y2 = y1 + spacing;
-
-                    if (ownerId && players[ownerId]) {
-                        ctx.strokeStyle = players[ownerId].color;
-                        ctx.shadowColor = players[ownerId].color;
-                        ctx.shadowBlur = 8;
-                        ctx.beginPath();
-                        ctx.moveTo(x1, y1);
-                        ctx.lineTo(x2, y2);
-                        ctx.stroke();
-                        ctx.shadowBlur = 0;
-                    } else {
-                        ctx.strokeStyle = 'rgba(51, 65, 85, 0.3)';
-                        ctx.beginPath();
-                        ctx.moveTo(x1, y1);
-                        ctx.lineTo(x2, y2);
-                        ctx.stroke();
-                    }
-                }
-            }
-
-            // 3. Hover preview
-            const currentTurnUserId = roomData.playerOrder[roomData.currentTurnIndex];
-            if (hoverLine && currentTurnUserId === currentUser.uid && roomData.status === 'playing') {
-                const { type, r, c } = hoverLine;
-                const lineKey = `${type}_${r}_${c}`;
-                if (!lines[lineKey]) {
-                    let x1, y1, x2, y2;
-                    if (type === 'h') {
-                        x1 = padding + c * spacing;
-                        y1 = padding + r * spacing;
-                        x2 = x1 + spacing;
-                        y2 = y1;
-                    } else {
-                        x1 = padding + c * spacing;
-                        y1 = padding + r * spacing;
-                        x2 = x1;
-                        y2 = y1 + spacing;
-                    }
-                    ctx.strokeStyle = '#00f0ff';
-                    ctx.shadowColor = '#00f0ff';
-                    ctx.shadowBlur = 12;
-                    ctx.lineWidth = 8;
-                    ctx.beginPath();
-                    ctx.moveTo(x1, y1);
-                    ctx.lineTo(x2, y2);
-                    ctx.stroke();
-                    ctx.shadowBlur = 0;
-                }
-            }
-
-            // 4. Grid Dots
-            for (let r = 0; r < grid; r++) {
-                for (let c = 0; c < grid; c++) {
-                    const x = padding + c * spacing;
-                    const y = padding + r * spacing;
-
-                    ctx.fillStyle = '#f8fafc';
-                    ctx.shadowColor = 'rgba(255, 255, 255, 0.8)';
-                    ctx.shadowBlur = 4;
-                    ctx.beginPath();
-                    ctx.arc(x, y, 4.5, 0, Math.PI * 2);
-                    ctx.fill();
-                    ctx.shadowBlur = 0;
-                }
-            }
-        }
+        window.zoomCanvas = function(f) {
+            transform.scale = Math.max(0.4, Math.min(3, transform.scale * f));
+        };
 
         function setupCanvasEvents() {
-            const screenToWorld = (sx, sy) => {
-                const rect = canvas.getBoundingClientRect();
-                const x = (sx - rect.left - transform.x) / transform.scale;
-                const y = (sy - rect.top - transform.y) / transform.scale;
-                return { x, y };
-            };
-
-            const getLineFromWorldPos = (wx, wy) => {
-                if (!roomData) return null;
-                const grid = roomData.gridSize;
-                const spacing = 50;
-                const padding = 60;
-                const tolerance = 20; // Expanded hitbox for touch targets on mobile
-
-                for (let r = 0; r < grid; r++) {
-                    for (let c = 0; c < grid - 1; c++) {
-                        const x1 = padding + c * spacing;
-                        const y1 = padding + r * spacing;
-                        const x2 = x1 + spacing;
-
-                        if (wx >= x1 + 4 && wx <= x2 - 4 && Math.abs(wy - y1) <= tolerance) {
-                            return { type: 'h', r, c };
-                        }
-                    }
-                }
-
-                for (let r = 0; r < grid - 1; r++) {
-                    for (let c = 0; c < grid; c++) {
-                        const x1 = padding + c * spacing;
-                        const y1 = padding + r * spacing;
-                        const y2 = y1 + spacing;
-
-                        if (wy >= y1 + 4 && wy <= y2 - 4 && Math.abs(wx - x1) <= tolerance) {
-                            return { type: 'v', r, c };
-                        }
-                    }
-                }
-
-                return null;
-            };
-
             canvas.addEventListener('mousedown', (e) => {
                 isDragging = true;
                 dragStart = { x: e.clientX - transform.x, y: e.clientY - transform.y };
@@ -1263,164 +1053,71 @@
                 if (isDragging) {
                     transform.x = e.clientX - dragStart.x;
                     transform.y = e.clientY - dragStart.y;
-                } else {
-                    const worldPos = screenToWorld(e.clientX, e.clientY);
-                    hoverLine = getLineFromWorldPos(worldPos.x, worldPos.y);
                 }
             });
 
-            window.addEventListener('mouseup', () => {
-                isDragging = false;
-            });
+            window.addEventListener('mouseup', () => isDragging = false);
 
             canvas.addEventListener('click', (e) => {
-                const worldPos = screenToWorld(e.clientX, e.clientY);
-                const line = getLineFromWorldPos(worldPos.x, worldPos.y);
-                if (line) {
-                    playLineMove(`${line.type}_${line.r}_${line.c}`);
-                }
-            });
+                if (!roomData) return;
+                const rect = canvas.getBoundingClientRect();
+                const wx = (e.clientX - rect.left - transform.x) / transform.scale;
+                const wy = (e.clientY - rect.top - transform.y) / transform.scale;
+                
+                const grid = roomData.gridSize;
+                const spacing = 50;
+                const padding = 60;
 
-            canvas.addEventListener('wheel', (e) => {
-                e.preventDefault();
-                const zoomFactor = e.deltaY < 0 ? 1.15 : 0.88;
-                zoomCanvas(zoomFactor);
-            }, { passive: false });
-
-            // Touch support for Mobile / Tablet
-            canvas.addEventListener('touchstart', (e) => {
-                if (e.touches.length === 1) {
-                    isDragging = true;
-                    dragStart = { x: e.touches[0].clientX - transform.x, y: e.touches[0].clientY - transform.y };
-                } else if (e.touches.length === 2) {
-                    isDragging = false;
-                    touchStartDist = Math.hypot(
-                        e.touches[0].clientX - e.touches[1].clientX,
-                        e.touches[0].clientY - e.touches[1].clientY
-                    );
-                }
-            }, { passive: true });
-
-            canvas.addEventListener('touchmove', (e) => {
-                if (isDragging && e.touches.length === 1) {
-                    transform.x = e.touches[0].clientX - dragStart.x;
-                    transform.y = e.touches[0].clientY - dragStart.y;
-                } else if (e.touches.length === 2) {
-                    const dist = Math.hypot(
-                        e.touches[0].clientX - e.touches[1].clientX,
-                        e.touches[0].clientY - e.touches[1].clientY
-                    );
-                    const factor = dist / (touchStartDist || dist);
-                    zoomCanvas(factor);
-                    touchStartDist = dist;
-                }
-            }, { passive: true });
-
-            canvas.addEventListener('touchend', (e) => {
-                if (e.changedTouches.length === 1 && !isDragging) {
-                    const touch = e.changedTouches[0];
-                    const worldPos = screenToWorld(touch.clientX, touch.clientY);
-                    const line = getLineFromWorldPos(worldPos.x, worldPos.y);
-                    if (line) {
-                        playLineMove(`${line.type}_${line.r}_${line.c}`);
+                for (let r = 0; r < grid; r++) {
+                    for (let c = 0; c < grid - 1; c++) {
+                        const x1 = padding + c * spacing, y1 = padding + r * spacing;
+                        if (wx >= x1 && wx <= x1 + spacing && Math.abs(wy - y1) < 18) {
+                            playLineMove(`h_${r}_${c}`);
+                            return;
+                        }
                     }
                 }
-                isDragging = false;
+
+                for (let r = 0; r < grid - 1; r++) {
+                    for (let c = 0; c < grid; c++) {
+                        const x1 = padding + c * spacing, y1 = padding + r * spacing;
+                        if (wy >= y1 && wy <= y1 + spacing && Math.abs(wx - x1) < 18) {
+                            playLineMove(`v_${r}_${c}`);
+                            return;
+                        }
+                    }
+                }
             });
         }
 
-        window.sendReaction = function(emoji) {
-            spawnFloatingEmoji(emoji);
-        };
-
-        function spawnFloatingEmoji(emoji) {
-            const layer = document.getElementById('emojiLayer');
-            const el = document.createElement('div');
-            el.className = 'absolute text-3xl animate-float-up pointer-events-none select-none';
-            el.style.left = `${Math.random() * 80 + 10}%`;
-            el.style.bottom = '10%';
-            el.innerText = emoji;
-            layer.appendChild(el);
-            setTimeout(() => el.remove(), 2500);
-        }
-
-        function showTurnBanner(msg) {
-            const banner = document.getElementById('turnBanner');
-            const txt = document.getElementById('turnBannerText');
-            txt.innerText = msg;
-            banner.classList.remove('opacity-0', '-translate-y-4');
-            banner.classList.add('opacity-100', 'translate-y-0');
-            setTimeout(() => {
-                banner.classList.remove('opacity-100', 'translate-y-0');
-                banner.classList.add('opacity-0', '-translate-y-4');
-            }, 2000);
-        }
-
-        function showVictoryPodium(data) {
-            playSynthSound('win');
-            confetti({ particleCount: 120, spread: 80, origin: { y: 0.6 } });
-
+        function showVictory(data) {
+            confetti({ particleCount: 100, spread: 70 });
             const modal = document.getElementById('victoryModal');
             const list = document.getElementById('podiumList');
             list.innerHTML = '';
 
-            const players = Object.values(data.players || {}).sort((a, b) => (b.score || 0) - (a.score || 0));
-
-            players.forEach((p, idx) => {
-                const item = document.createElement('div');
-                item.className = `p-3 rounded-xl border flex items-center justify-between ${
-                    idx === 0 ? 'bg-amber-500/20 border-amber-500/60 font-bold' : 'bg-slate-900 border-slate-800'
-                }`;
-
-                item.innerHTML = `
-                    <div class="flex items-center space-x-3">
-                        <span class="text-sm font-black text-slate-400">#${idx + 1}</span>
-                        <span class="text-2xl">${p.avatar}</span>
-                        <span class="text-xs font-extrabold text-white">${p.name}</span>
-                    </div>
-                    <span class="text-sm font-black text-amber-400 font-mono">${p.score || 0} pts</span>
-                `;
-                list.appendChild(item);
+            const sorted = Object.values(data.players).sort((a, b) => b.score - a.score);
+            sorted.forEach((p, i) => {
+                const div = document.createElement('div');
+                div.className = "p-2.5 bg-slate-900 rounded-xl border border-slate-800 flex items-center justify-between";
+                div.innerHTML = `<span class="text-xs text-white">#${i+1} ${p.avatar} ${p.name}</span><span class="font-mono text-xs text-amber-400 font-black">${p.score} pts</span>`;
+                list.appendChild(div);
             });
-
             modal.classList.remove('hidden');
         }
 
-        window.toggleModal = function(id) {
-            document.getElementById(id).classList.toggle('hidden');
+        window.toggleModal = id => document.getElementById(id).classList.toggle('hidden');
+        window.toggleLeaderboardDrawer = () => document.getElementById('leaderboardPanel').classList.toggle('translate-y-full');
+        window.copyRoomLink = () => {
+            const link = `${window.location.origin}${window.location.pathname}?room=${currentRoomCode}`;
+            navigator.clipboard.writeText(link);
+            alert("¡Enlace copiado al portapapeles!");
         };
-
-        window.toggleSound = function() {
-            soundEnabled = !soundEnabled;
-            const icon = document.getElementById('soundIcon');
-            icon.className = soundEnabled ? 'fa-solid fa-volume-high text-cyan-400' : 'fa-solid fa-volume-xmark text-slate-500';
-        };
-
-        window.toggleLeaderboardDrawer = function() {
-            document.getElementById('leaderboardPanel').classList.toggle('translate-y-full');
-        };
-
-        window.copyRoomCode = function() {
-            if (!currentRoomCode) return;
-            const shareUrl = `${window.location.origin}${window.location.pathname}?room=${currentRoomCode}`;
-            
-            const tempInput = document.createElement('input');
-            tempInput.value = shareUrl;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-
-            showTurnBanner(`¡Enlace copiado al portapapeles!`);
-        };
-
-        window.leaveRoomAndReturnLobby = function() {
+        window.leaveRoomAndReturnLobby = () => {
             if (roomUnsubscribe) roomUnsubscribe();
             currentRoomCode = null;
-            roomData = null;
             document.getElementById('victoryModal').classList.add('hidden');
-            document.getElementById('roomCodeBadge').classList.add('hidden');
-            document.getElementById('lobbyScreen').classList.remove('hidden');
+            document.getElementById('landingLobbyScreen').classList.remove('hidden');
         };
     </script>
 </body>
